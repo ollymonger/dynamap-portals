@@ -54,14 +54,14 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
             String portalID = String.format("portal_%s_%d_%d_%d", worldName, Math.round(x), Math.round(y), Math.round(z));
 
             this.portalSet.createMarker(portalID, "Nether Portal", worldName, x, y, z, markerApi.getMarkerIcon("portal"), true);
-            getLogger().info("Created Nether Portal: "+ portalID);
+            getLogger().info("Created Nether Portal: " + portalID);
         }
     }
 
     @EventHandler
     public void onBlockPhysics(BlockPhysicsEvent event) {
         if (event.getBlock().getType().equals(Material.NETHER_PORTAL) == false) {
-            this.portalSet.deleteMarkerSet();
+
             return;
         }
 
