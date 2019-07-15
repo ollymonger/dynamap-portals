@@ -60,7 +60,6 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         }
     }
 
-
     @EventHandler
     public void onBlockPhysics(BlockPhysicsEvent event) {
         if (event.getBlock().getType().equals(Material.NETHER_PORTAL) == false) {
