@@ -45,11 +45,10 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
                 continue;//continue on until fire is hit
             }
 
-            World world = block.getWorld();
+            String worldName = block.getWorld().getName();
             float x = block.getX();
             float y = block.getY();
             float z = block.getZ();
-            String worldName = world.getName();
 
             String portalID = String.format("portal_%s_%d_%d_%d", worldName, Math.round(x), Math.round(y), Math.round(z));
 
