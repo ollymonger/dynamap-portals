@@ -3,23 +3,17 @@ package com.ollymonger.dynmap.portals;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
-import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
-import org.dynmap.markers.MarkerIcon;
 import org.dynmap.markers.MarkerSet;
 
 import java.util.List;
 
-import static org.bukkit.Bukkit.*;
 
 public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     static final String DYNMAP_PLUGIN_NAME = "dynmap";
