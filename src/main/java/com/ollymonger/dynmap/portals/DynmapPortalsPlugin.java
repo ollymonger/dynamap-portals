@@ -1,14 +1,25 @@
 package com.ollymonger.dynmap.portals;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
+import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
+import org.dynmap.markers.MarkerIcon;
 import org.dynmap.markers.MarkerSet;
+
+import java.util.List;
+
+import static org.bukkit.Bukkit.*;
 
 public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     static final String DYNMAP_PLUGIN_NAME = "dynmap";
@@ -29,21 +40,35 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onChunkLoad(ChunkLoadEvent event) {
-        new Thread(new DynmapStructuresRunnable(event.getChunk())).start();
+    public void onPortalCreate(PortalCreateEvent event) {
+        getLogger().info("Portal created");
+        List<BlockState> blocks = event.getBlocks();
+
+        for (int i = 0; i < blocks.size(); i++) {
+            Block block = blocks.get(i).getBlock();
+            World world = block.getWorld();
+            float x = block.getX();
+            float y = block.getY();
+            float z = block.getZ();
+
+            if (block.getType().name() != "FIRE") { //if portal block is not fire
+                continue;//continue on until fire is hit
+            } 
+
+            this.portalSet.createMarker(SET_ID_PORTALS, "Nether Portal", world.getName(), x, y, z, markerApi.getMarkerIcon("portal"), true);
+            getLogger().info("Portal Marker made with this:" + SET_ID_PORTALS + "," + world.getName() + "," + x + "," + z);
+        }
     }
 
-    private class DynmapStructuresRunnable implements Runnable {
-        private Chunk chunk;
 
-        private DynmapStructuresRunnable(Chunk chunk) {
-            this.chunk = chunk;
+    @EventHandler
+    public void onBlockPhysics(BlockPhysicsEvent event) {
+        if (event.getBlock().getType().equals(Material.NETHER_PORTAL) == false) {
+            return;
         }
 
-        @Override
-        public void run() {
-            getLogger().info("runnable running for " + this.chunk.getX() + ", " + this.chunk.getZ());
-        }
+        // nether portal being affected by physics means it's broken
+        getLogger().info("Portal destroyed");
     }
 
     private void initialiseMarkerApi() {
