@@ -1,0 +1,5 @@
+name: dynmap-portals
+version: 1.0.0
+author: Olly Monger, James Monger
+main: com.ollymonger.dynmap.portals.DynmapPortalsPlugin
+api-version: 1.14
