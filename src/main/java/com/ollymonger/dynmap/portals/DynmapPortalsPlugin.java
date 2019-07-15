@@ -40,23 +40,28 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
 
         for (int i = 0; i < blocks.size(); i++) {
             Block block = blocks.get(i).getBlock();
-            World world = block.getWorld();
-            float x = block.getX();
-            float y = block.getY();
-            float z = block.getZ();
 
             if (block.getType().name() != "FIRE") { //if portal block is not fire
                 continue;//continue on until fire is hit
-            } 
+            }
 
-            this.portalSet.createMarker(SET_ID_PORTALS, "Nether Portal", world.getName(), x, y, z, markerApi.getMarkerIcon("portal"), true);
-            getLogger().info("Portal Marker made with this:" + SET_ID_PORTALS + "," + world.getName() + "," + x + "," + z);
+            World world = block.getWorld();
+            int x = block.getX();
+            int y = block.getY();
+            int z = block.getZ();
+            String worldName = world.getName();
+
+            String portalID = String.format("portal_%s_%d_%d_%d", worldName, Math.round(x), Math.round(y), Math.round(z));
+
+            this.portalSet.createMarker(portalID, "Nether Portal", worldName, x, y, z, markerApi.getMarkerIcon("portal"), true);
+            getLogger().info("Created Nether Portal: "+ portalID);
         }
     }
 
     @EventHandler
     public void onBlockPhysics(BlockPhysicsEvent event) {
         if (event.getBlock().getType().equals(Material.NETHER_PORTAL) == false) {
+            this.portalSet.deleteMarkerSet();
             return;
         }
 
