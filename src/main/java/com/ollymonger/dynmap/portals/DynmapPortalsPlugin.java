@@ -1,10 +1,13 @@
 package com.ollymonger.dynmap.portals;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
 import org.dynmap.markers.MarkerAPI;
@@ -29,21 +32,18 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onChunkLoad(ChunkLoadEvent event) {
-        new Thread(new DynmapStructuresRunnable(event.getChunk())).start();
+    public void onPortalCreate(PortalCreateEvent event) {
+        getLogger().info("Portal created");
     }
 
-    private class DynmapStructuresRunnable implements Runnable {
-        private Chunk chunk;
-
-        private DynmapStructuresRunnable(Chunk chunk) {
-            this.chunk = chunk;
+    @EventHandler
+    public void onBlockPhysics(BlockPhysicsEvent event) {
+        if (event.getBlock().getType().equals(Material.NETHER_PORTAL) == false) {
+            return;
         }
 
-        @Override
-        public void run() {
-            getLogger().info("runnable running for " + this.chunk.getX() + ", " + this.chunk.getZ());
-        }
+        // nether portal being affected by physics means it's broken
+        getLogger().info("Portal destroyed");
     }
 
     private void initialiseMarkerApi() {
