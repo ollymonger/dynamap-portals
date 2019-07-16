@@ -67,12 +67,6 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         }
     }
 
-    @EventHandler
-    public void onBlockPhysics(BlockPhysicsEvent event) {
-        // nether portal being affected by physics means it's broken
-        getLogger().info("Portal destroyed");
-    }
-
     private void initialiseMarkerApi() {
         if (Bukkit.getPluginManager().isPluginEnabled(DYNMAP_PLUGIN_NAME) == false) {
             throw new IllegalStateException("No Dynmap plugin found");
