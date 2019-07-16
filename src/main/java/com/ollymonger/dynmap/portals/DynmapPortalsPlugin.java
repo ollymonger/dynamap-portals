@@ -3,16 +3,20 @@ package com.ollymonger.dynmap.portals;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.Structure;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
+import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
@@ -27,7 +31,6 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     private MarkerAPI markerApi;
     private MarkerSet portalSet;
     private MarkerSet portalExclusionSet;
-    private List<BlockState> blockList;
 
     @Override
     public void onEnable() {
@@ -42,7 +45,6 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     public void onPortalCreate(PortalCreateEvent event) {
         getLogger().info("Portal created");
         List<BlockState> blocks = event.getBlocks();
-        this.blockList = blocks;
         for (int i = 0; i < blocks.size(); i++) {
             Block block = blocks.get(i).getBlock();
 
@@ -59,7 +61,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
             String portalExclusion = String.format("portal_exclusion_%s_%d_%d_%d", worldName, Math.round(x), Math.round(y), Math.round(z));
 
             this.portalSet.createMarker(portalID, "Nether Portal", worldName, x, y, z, markerApi.getMarkerIcon("portal"), true);
-            this.portalExclusionSet.createCircleMarker(portalExclusion, "Nether Portal Zone", true, worldName, x, y, z, 100, 100, true);
+            this.portalExclusionSet.createCircleMarker(portalExclusion, "Nether Portal Zone", true, worldName, x, y, z, 512, 512, true);
             getLogger().info("Created Nether Portal: " + portalID);
             getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
         }
@@ -67,12 +69,8 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onBlockPhysics(BlockPhysicsEvent event) {
-        if (event.getBlock().getType().equals(Material.NETHER_PORTAL) == false) {
-            return;
-        }
-
         // nether portal being affected by physics means it's broken
-        //getLogger().info("Portal destroyed");
+        getLogger().info("Portal destroyed");
     }
 
     private void initialiseMarkerApi() {
