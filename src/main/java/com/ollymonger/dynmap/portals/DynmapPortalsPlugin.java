@@ -3,23 +3,20 @@ package com.ollymonger.dynmap.portals;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.Structure;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
-import org.dynmap.markers.Marker;
+import org.dynmap.markers.CircleMarker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 
 public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
+
     static final String DYNMAP_PLUGIN_NAME = "dynmap";
 
     static final String SET_ID_PORTALS = "nether_portals";
@@ -61,7 +58,10 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
             String portalExclusion = String.format("portal_exclusion_%s_%d_%d_%d", worldName, Math.round(x), Math.round(y), Math.round(z));
 
             this.portalSet.createMarker(portalID, "Nether Portal", worldName, x, y, z, markerApi.getMarkerIcon("portal"), true);
-            this.portalExclusionSet.createCircleMarker(portalExclusion, "Nether Portal Zone", true, worldName, x, y, z, 512, 512, true);
+            CircleMarker exclusion = this.portalExclusionSet.createCircleMarker(portalExclusion, "Nether Portal Zone", true, worldName, x, y, z, 512, 512, true);
+            exclusion.setFillStyle(0.3, 0x7931b0);
+            exclusion.setLineStyle(1, 1, 0x7f09d9);
+
             getLogger().info("Created Nether Portal: " + portalID);
             getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
         }
@@ -97,7 +97,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         this.portalSet.setHideByDefault(false);
         getLogger().info("Portals Set initialised");
 
-        this.portalExclusionSet.setHideByDefault(false);
+        this.portalExclusionSet.setHideByDefault(true);
         getLogger().info("Exclusions set initialised");
 
     }
