@@ -59,10 +59,8 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
 
             this.portalSet.createMarker(portalID, "Nether Portal", worldName, x, y, z, markerApi.getMarkerIcon("portal"), true);
             CircleMarker exclusion = this.portalExclusionSet.createCircleMarker(portalExclusion, "Nether Portal Zone", true, worldName, x, y, z, 512, 512, true);
-            int fillcolour = Integer.parseInt("7931b0", 16);
-            int linecolour = Integer.parseInt("7f09d9", 16);
-            exclusion.setFillStyle(0.3, fillcolour);
-            exclusion.setLineStyle(1, 1, linecolour);
+            exclusion.setFillStyle(0.3, 0x7931b0);
+            exclusion.setLineStyle(1, 1, 0x7f09d9);
 
             getLogger().info("Created Nether Portal: " + portalID);
             getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
