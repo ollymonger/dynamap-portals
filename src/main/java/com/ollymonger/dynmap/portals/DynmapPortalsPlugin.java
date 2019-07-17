@@ -3,24 +3,20 @@ package com.ollymonger.dynmap.portals;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.Structure;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
 import org.dynmap.markers.CircleMarker;
-import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 
 public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
+
     static final String DYNMAP_PLUGIN_NAME = "dynmap";
 
     static final String SET_ID_PORTALS = "nether_portals";
@@ -96,15 +92,15 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         this.portalExclusionSet = this.markerApi.getMarkerSet(SET_ID_PORTAL_EXCLUSIONS);
 
         if (this.portalExclusionSet == null) {
-        getLogger().info("Exclusions Set not found, creating new set");
-        this.portalExclusionSet = this.markerApi.createMarkerSet(SET_ID_PORTAL_EXCLUSIONS, SET_NAME_PORTAL_EXCLUSIONS, null, true);
+            getLogger().info("Exclusions Set not found, creating new set");
+            this.portalExclusionSet = this.markerApi.createMarkerSet(SET_ID_PORTAL_EXCLUSIONS, SET_NAME_PORTAL_EXCLUSIONS, null, true);
         }
 
-        this.portalSet.setHideByDefault(true);
+        this.portalSet.setHideByDefault(false);
         getLogger().info("Portals Set initialised");
 
         this.portalExclusionSet.setHideByDefault(true);
         getLogger().info("Exclusions set initialised");
 
-        }
-        }
+    }
+}
