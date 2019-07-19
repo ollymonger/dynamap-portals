@@ -12,14 +12,20 @@ import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
 import org.dynmap.markers.CircleMarker;
+import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+interface DeletableMarker extends Marker {
+    void deleteMarker();
+}
 
 class LocationUtils  {
     static Location getAverageLocation(List<Location> locations){
@@ -46,6 +52,7 @@ class RegisteredPortal {
                 Math.round(this.centralPoint.getY()),
                 Math.round(this.centralPoint.getZ())
         );
+
     }
 
     public boolean isPartOfFrame(Location location) {
@@ -85,20 +92,20 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         this.initialiseMarkerApi();
     }
 
-    @EventHandler
-    public void onPortalCreate(PortalCreateEvent event) {
-        getLogger().info("Portal created");
-        List<BlockState> blocks = event.getBlocks();
+        @EventHandler
+        public void onPortalCreate(PortalCreateEvent event) {
+            getLogger().info("Portal created");
+            List<BlockState> blocks = event.getBlocks();
 
-        List<Location> obsidianLocations = blocks.parallelStream()
-                .filter(b -> b.getType().equals(Material.OBSIDIAN))
-                .map(b -> b.getLocation())
-                .collect(Collectors.toList());
+            List<Location> obsidianLocations = blocks.parallelStream()
+                    .filter(b -> b.getType().equals(Material.OBSIDIAN))
+                    .map(b -> b.getLocation())
+                    .collect(Collectors.toList());
 
-        RegisteredPortal portal = new RegisteredPortal(obsidianLocations);
-        this.registeredPortals.add(portal);
-        
-        String portalID = portal.getPortalId();
+            RegisteredPortal portal = new RegisteredPortal(obsidianLocations);
+            this.registeredPortals.add(portal);
+
+            String portalID = portal.getPortalId();
         String portalExclusion = portalID + "_exclusion";
         Location centralPoint = portal.getCentralPoint();
 
@@ -154,10 +161,23 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
                 .findFirst();
 
         portal.ifPresent(p -> {
-            event.getPlayer().sendMessage("You destroyed portal " + p.getPortalId());
+            String portalId = p.getPortalId();
 
-            this.registeredPortals.remove(p);
+            event.getPlayer().sendMessage("You destroyed portal " + portalId);
+
+            Marker marker = this.portalSet.findMarker(p.getPortalId());
+            this.deleteMarker(marker);
         });
+    }
+
+    private void deleteMarker(Marker marker) {
+        try {
+            Method deleteMarker = marker.getClass().getDeclaredMethod("deleteMarker");
+            deleteMarker.setAccessible(true);
+            deleteMarker.invoke(marker);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     private void initialiseMarkerApi() {
