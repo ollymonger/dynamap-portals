@@ -101,8 +101,8 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         RegisteredPortal portal = new RegisteredPortal(obsidianLocations);
         this.registeredPortals.add(portal);
 
-        String portalID = portal.getPortalId();
-        String portalExclusion = portalID + "_exclusion";
+        String portalId = portal.getPortalId();
+        String portalExclusion = portalId + "_exclusion";
         Location centralPoint = portal.getCentralPoint();
 
         String worldName = centralPoint.getWorld().getName();
@@ -111,7 +111,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         double z = centralPoint.getZ();
 
         this.portalSet.createMarker(
-                portalID,
+                portalId,
                 "Nether Portal",
                 worldName,
                 x,
@@ -137,7 +137,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         exclusion.setFillStyle(0.3, 0x7931b0);
         exclusion.setLineStyle(1, 1, 0x7f09d9);
 
-        getLogger().info("Created Nether Portal: " + portalID);
+        getLogger().info("Created Nether Portal: " + portalId);
         getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
     }
 
@@ -161,7 +161,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
 
             event.getPlayer().sendMessage("You destroyed portal " + portalId);
 
-            Marker marker = this.portalSet.findMarker(p.getPortalId());
+            Marker marker = this.portalSet.findMarker(portalId);
             this.deleteMarker(marker);
         });
     }
