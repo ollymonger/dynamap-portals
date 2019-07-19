@@ -41,6 +41,20 @@ class RegisteredPortal {
     private List<Location> frameBlocks;
     private Location centralPoint;
 
+class LocationUtils  {
+    static Location getAverageLocation(List<Location> locations){
+        double averageX =  locations.parallelStream().mapToDouble(l -> l.getX()).average().getAsDouble();
+        double averageY =  locations.parallelStream().mapToDouble(l -> l.getY()).average().getAsDouble();
+        double averageZ =  locations.parallelStream().mapToDouble(l -> l.getZ()).average().getAsDouble();
+        return new Location(locations.get(0).getWorld(), averageX, averageY, averageZ);
+    }
+}
+
+class RegisteredPortal {
+    private String portalId;
+    private List<Location> frameBlocks;
+    private Location centralPoint;
+
     public RegisteredPortal(List<Location> frameBlocks){
         this.frameBlocks = frameBlocks;
         this.centralPoint = LocationUtils.getAverageLocation(frameBlocks);
@@ -52,7 +66,6 @@ class RegisteredPortal {
                 Math.round(this.centralPoint.getY()),
                 Math.round(this.centralPoint.getZ())
         );
-
     }
 
     public boolean isPartOfFrame(Location location) {
@@ -64,6 +77,10 @@ class RegisteredPortal {
         return this.portalId;
     }
 
+  public Location getCentralPoint() {
+        return this.centralPoint;
+    }
+}
     public Location getCentralPoint() {
         return this.centralPoint;
     }
@@ -146,6 +163,59 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
+    public void onPortalCreate(PortalCreateEvent event) {
+        getLogger().info("Portal created");
+        List<BlockState> blocks = event.getBlocks();
+
+        List<Location> obsidianLocations = blocks.parallelStream()
+                .filter(b -> b.getType().equals(Material.OBSIDIAN))
+                .map(b -> b.getLocation())
+                .collect(Collectors.toList());
+
+        RegisteredPortal portal = new RegisteredPortal(obsidianLocations);
+        this.registeredPortals.add(portal);
+        
+        String portalID = portal.getPortalId();
+        String portalExclusion = portalID + "_exclusion";
+        Location centralPoint = portal.getCentralPoint();
+
+        String worldName = centralPoint.getWorld().getName();
+        double x = centralPoint.getX();
+        double y = centralPoint.getY();
+        double z = centralPoint.getZ();
+
+        this.portalSet.createMarker(
+                portalID,
+                "Nether Portal",
+                worldName,
+                x,
+                y,
+                z,
+                markerApi.getMarkerIcon("portal"),
+                true
+        );
+
+        CircleMarker exclusion = this.portalExclusionSet.createCircleMarker(
+                portalExclusion,
+                "Nether Portal Zone",
+                true,
+                worldName,
+                x,
+                y,
+                z,
+                512,
+                512,
+                true
+        );
+
+        exclusion.setFillStyle(0.3, 0x7931b0);
+        exclusion.setLineStyle(1, 1, 0x7f09d9);
+
+        getLogger().info("Created Nether Portal: " + portalID);
+        getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
+    }
+
+    @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
 
@@ -178,6 +248,10 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
+            event.getPlayer().sendMessage("You destroyed portal " + p.getPortalId());
+
+            this.registeredPortals.remove(p);
+        });
     }
 
     private void initialiseMarkerApi() {
