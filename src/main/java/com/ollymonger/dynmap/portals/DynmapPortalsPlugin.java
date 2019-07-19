@@ -23,15 +23,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-interface DeletableMarker extends Marker {
-    void deleteMarker();
-}
-
-class LocationUtils  {
-    static Location getAverageLocation(List<Location> locations){
-        double averageX =  locations.parallelStream().mapToDouble(l -> l.getX()).average().getAsDouble();
-        double averageY =  locations.parallelStream().mapToDouble(l -> l.getY()).average().getAsDouble();
-        double averageZ =  locations.parallelStream().mapToDouble(l -> l.getZ()).average().getAsDouble();
+class LocationUtils {
+    static Location getAverageLocation(List<Location> locations) {
+        double averageX = locations.parallelStream().mapToDouble(l -> l.getX()).average().getAsDouble();
+        double averageY = locations.parallelStream().mapToDouble(l -> l.getY()).average().getAsDouble();
+        double averageZ = locations.parallelStream().mapToDouble(l -> l.getZ()).average().getAsDouble();
         return new Location(locations.get(0).getWorld(), averageX, averageY, averageZ);
     }
 }
@@ -41,7 +37,7 @@ class RegisteredPortal {
     private List<Location> frameBlocks;
     private Location centralPoint;
 
-    public RegisteredPortal(List<Location> frameBlocks){
+    public RegisteredPortal(List<Location> frameBlocks) {
         this.frameBlocks = frameBlocks;
         this.centralPoint = LocationUtils.getAverageLocation(frameBlocks);
 
@@ -60,7 +56,7 @@ class RegisteredPortal {
                 .anyMatch(l -> l.equals(location));
     }
 
-    public String getPortalId(){
+    public String getPortalId() {
         return this.portalId;
     }
 
@@ -92,20 +88,20 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         this.initialiseMarkerApi();
     }
 
-        @EventHandler
-        public void onPortalCreate(PortalCreateEvent event) {
-            getLogger().info("Portal created");
-            List<BlockState> blocks = event.getBlocks();
+    @EventHandler
+    public void onPortalCreate(PortalCreateEvent event) {
+        getLogger().info("Portal created");
+        List<BlockState> blocks = event.getBlocks();
 
-            List<Location> obsidianLocations = blocks.parallelStream()
-                    .filter(b -> b.getType().equals(Material.OBSIDIAN))
-                    .map(b -> b.getLocation())
-                    .collect(Collectors.toList());
+        List<Location> obsidianLocations = blocks.parallelStream()
+                .filter(b -> b.getType().equals(Material.OBSIDIAN))
+                .map(b -> b.getLocation())
+                .collect(Collectors.toList());
 
-            RegisteredPortal portal = new RegisteredPortal(obsidianLocations);
-            this.registeredPortals.add(portal);
+        RegisteredPortal portal = new RegisteredPortal(obsidianLocations);
+        this.registeredPortals.add(portal);
 
-            String portalID = portal.getPortalId();
+        String portalID = portal.getPortalId();
         String portalExclusion = portalID + "_exclusion";
         Location centralPoint = portal.getCentralPoint();
 
