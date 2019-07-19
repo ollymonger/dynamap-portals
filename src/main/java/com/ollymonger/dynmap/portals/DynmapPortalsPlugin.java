@@ -1,10 +1,13 @@
 package com.ollymonger.dynmap.portals;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
@@ -12,11 +15,54 @@ import org.dynmap.markers.CircleMarker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+
+class LocationUtils  {
+    static Location getAverageLocation(List<Location> locations){
+        double averageX =  locations.parallelStream().mapToDouble(l -> l.getX()).average().getAsDouble();
+        double averageY =  locations.parallelStream().mapToDouble(l -> l.getY()).average().getAsDouble();
+        double averageZ =  locations.parallelStream().mapToDouble(l -> l.getZ()).average().getAsDouble();
+        return new Location(locations.get(0).getWorld(), averageX, averageY, averageZ);
+    }
+}
+
+class RegisteredPortal {
+    private String portalId;
+    private List<Location> frameBlocks;
+    private Location centralPoint;
+
+    public RegisteredPortal(List<Location> frameBlocks){
+        this.frameBlocks = frameBlocks;
+        this.centralPoint = LocationUtils.getAverageLocation(frameBlocks);
+
+        this.portalId = String.format(
+                "portal_%s_%d_%d_%d",
+                this.centralPoint.getWorld().getName(),
+                Math.round(this.centralPoint.getX()),
+                Math.round(this.centralPoint.getY()),
+                Math.round(this.centralPoint.getZ())
+        );
+    }
+
+    public boolean isPartOfFrame(Location location) {
+        return this.frameBlocks.parallelStream()
+                .anyMatch(l -> l.equals(location));
+    }
+
+    public String getPortalId(){
+        return this.portalId;
+    }
+
+    public Location getCentralPoint() {
+        return this.centralPoint;
+    }
+}
 
 public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
-
     static final String DYNMAP_PLUGIN_NAME = "dynmap";
 
     static final String SET_ID_PORTALS = "nether_portals";
@@ -28,6 +74,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     private MarkerAPI markerApi;
     private MarkerSet portalSet;
     private MarkerSet portalExclusionSet;
+    private ArrayList<RegisteredPortal> registeredPortals = new ArrayList<RegisteredPortal>();
 
     @Override
     public void onEnable() {
@@ -42,29 +89,75 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     public void onPortalCreate(PortalCreateEvent event) {
         getLogger().info("Portal created");
         List<BlockState> blocks = event.getBlocks();
-        for (int i = 0; i < blocks.size(); i++) {
-            Block block = blocks.get(i).getBlock();
 
-            if (block.getType().name() != "FIRE") { //if portal block is not fire
-                continue;//continue on until fire is hit
-            }
+        List<Location> obsidianLocations = blocks.parallelStream()
+                .filter(b -> b.getType().equals(Material.OBSIDIAN))
+                .map(b -> b.getLocation())
+                .collect(Collectors.toList());
 
-            String worldName = block.getWorld().getName();
-            float x = block.getX();
-            float y = block.getY();
-            float z = block.getZ();
+        RegisteredPortal portal = new RegisteredPortal(obsidianLocations);
+        this.registeredPortals.add(portal);
+        
+        String portalID = portal.getPortalId();
+        String portalExclusion = portalID + "_exclusion";
+        Location centralPoint = portal.getCentralPoint();
 
-            String portalID = String.format("portal_%s_%d_%d_%d", worldName, Math.round(x), Math.round(y), Math.round(z));
-            String portalExclusion = String.format("portal_exclusion_%s_%d_%d_%d", worldName, Math.round(x), Math.round(y), Math.round(z));
+        String worldName = centralPoint.getWorld().getName();
+        double x = centralPoint.getX();
+        double y = centralPoint.getY();
+        double z = centralPoint.getZ();
 
-            this.portalSet.createMarker(portalID, "Nether Portal", worldName, x, y, z, markerApi.getMarkerIcon("portal"), true);
-            CircleMarker exclusion = this.portalExclusionSet.createCircleMarker(portalExclusion, "Nether Portal Zone", true, worldName, x, y, z, 512, 512, true);
-            exclusion.setFillStyle(0.3, 0x7931b0);
-            exclusion.setLineStyle(1, 1, 0x7f09d9);
+        this.portalSet.createMarker(
+                portalID,
+                "Nether Portal",
+                worldName,
+                x,
+                y,
+                z,
+                markerApi.getMarkerIcon("portal"),
+                true
+        );
 
-            getLogger().info("Created Nether Portal: " + portalID);
-            getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
+        CircleMarker exclusion = this.portalExclusionSet.createCircleMarker(
+                portalExclusion,
+                "Nether Portal Zone",
+                true,
+                worldName,
+                x,
+                y,
+                z,
+                512,
+                512,
+                true
+        );
+
+        exclusion.setFillStyle(0.3, 0x7931b0);
+        exclusion.setLineStyle(1, 1, 0x7f09d9);
+
+        getLogger().info("Created Nether Portal: " + portalID);
+        getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+
+        if (block.getType().equals(Material.OBSIDIAN) == false) {
+            // we only care about obsidian being broken
+            return;
         }
+
+        Location location = block.getLocation();
+
+        Optional<RegisteredPortal> portal = this.registeredPortals.parallelStream()
+                .filter(p -> p.isPartOfFrame(location))
+                .findFirst();
+
+        portal.ifPresent(p -> {
+            event.getPlayer().sendMessage("You destroyed portal " + p.getPortalId());
+
+            this.registeredPortals.remove(p);
+        });
     }
 
     private void initialiseMarkerApi() {
