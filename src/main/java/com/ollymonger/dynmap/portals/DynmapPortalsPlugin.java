@@ -11,21 +11,18 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
-import org.dynmap.markers.CircleMarker;
-import org.dynmap.markers.MarkerAPI;
-import org.dynmap.markers.MarkerSet;
+import org.dynmap.markers.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
-class LocationUtils  {
-    static Location getAverageLocation(List<Location> locations){
-        double averageX =  locations.parallelStream().mapToDouble(l -> l.getX()).average().getAsDouble();
-        double averageY =  locations.parallelStream().mapToDouble(l -> l.getY()).average().getAsDouble();
-        double averageZ =  locations.parallelStream().mapToDouble(l -> l.getZ()).average().getAsDouble();
+class LocationUtils {
+    static Location getAverageLocation(List<Location> locations) {
+        double averageX = locations.parallelStream().mapToDouble(l -> l.getX()).average().getAsDouble();
+        double averageY = locations.parallelStream().mapToDouble(l -> l.getY()).average().getAsDouble();
+        double averageZ = locations.parallelStream().mapToDouble(l -> l.getZ()).average().getAsDouble();
         return new Location(locations.get(0).getWorld(), averageX, averageY, averageZ);
     }
 }
@@ -35,7 +32,7 @@ class RegisteredPortal {
     private List<Location> frameBlocks;
     private Location centralPoint;
 
-    public RegisteredPortal(List<Location> frameBlocks){
+    public RegisteredPortal(List<Location> frameBlocks) {
         this.frameBlocks = frameBlocks;
         this.centralPoint = LocationUtils.getAverageLocation(frameBlocks);
 
@@ -46,6 +43,7 @@ class RegisteredPortal {
                 Math.round(this.centralPoint.getY()),
                 Math.round(this.centralPoint.getZ())
         );
+
     }
 
     public boolean isPartOfFrame(Location location) {
@@ -53,7 +51,7 @@ class RegisteredPortal {
                 .anyMatch(l -> l.equals(location));
     }
 
-    public String getPortalId(){
+    public String getPortalId() {
         return this.portalId;
     }
 
@@ -97,9 +95,9 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
 
         RegisteredPortal portal = new RegisteredPortal(obsidianLocations);
         this.registeredPortals.add(portal);
-        
-        String portalID = portal.getPortalId();
-        String portalExclusion = portalID + "_exclusion";
+
+        String portalId = portal.getPortalId();
+        String portalExclusion = portalId + "_exclusion";
         Location centralPoint = portal.getCentralPoint();
 
         String worldName = centralPoint.getWorld().getName();
@@ -108,7 +106,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         double z = centralPoint.getZ();
 
         this.portalSet.createMarker(
-                portalID,
+                portalId,
                 "Nether Portal",
                 worldName,
                 x,
@@ -134,7 +132,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         exclusion.setFillStyle(0.3, 0x7931b0);
         exclusion.setLineStyle(1, 1, 0x7f09d9);
 
-        getLogger().info("Created Nether Portal: " + portalID);
+        getLogger().info("Created Nether Portal: " + portalId);
         getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
     }
 
@@ -154,9 +152,15 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
                 .findFirst();
 
         portal.ifPresent(p -> {
-            event.getPlayer().sendMessage("You destroyed portal " + p.getPortalId());
+            String portalId = p.getPortalId();
 
-            this.registeredPortals.remove(p);
+            event.getPlayer().sendMessage("You destroyed portal " + portalId);
+
+            Marker marker = this.portalSet.findMarker(portalId);
+            CircleMarker exclusionMarker = this.portalExclusionSet.findCircleMarker(portalId + "_exclusion");
+
+            marker.deleteMarker();
+            exclusionMarker.deleteMarker();
         });
     }
 
