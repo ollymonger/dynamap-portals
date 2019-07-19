@@ -11,13 +11,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
-import org.dynmap.markers.CircleMarker;
-import org.dynmap.markers.Marker;
-import org.dynmap.markers.MarkerAPI;
-import org.dynmap.markers.MarkerSet;
+import org.dynmap.markers.*;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -163,30 +158,10 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
 
             Marker marker = this.portalSet.findMarker(portalId);
             CircleMarker exclusionMarker = this.portalExclusionSet.findCircleMarker(portalId + "_exclusion");
-            this.deleteMarker(marker);
-            this.deleteCircleMarker(exclusionMarker);
 
+            marker.deleteMarker();
+            exclusionMarker.deleteMarker();
         });
-    }
-
-    private void deleteMarker(Marker marker) {
-        try {
-            Method deleteMarker = marker.getClass().getDeclaredMethod("deleteMarker");
-            deleteMarker.setAccessible(true);
-            deleteMarker.invoke(marker);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void deleteCircleMarker(CircleMarker exclusionMarker) {
-        try {
-            Method deleteMarker = exclusionMarker.getClass().getDeclaredMethod("deleteMarker");
-            deleteMarker.setAccessible(true);
-            deleteMarker.invoke(exclusionMarker);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
     }
 
     private void initialiseMarkerApi() {
