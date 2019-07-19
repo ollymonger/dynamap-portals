@@ -162,7 +162,10 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
             event.getPlayer().sendMessage("You destroyed portal " + portalId);
 
             Marker marker = this.portalSet.findMarker(portalId);
+            CircleMarker marker2 = this.portalExclusionSet.findCircleMarker(portalId+"_exclusion");
             this.deleteMarker(marker);
+            this.deleteCircleMarker(marker2);
+
         });
     }
 
@@ -171,6 +174,16 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
             Method deleteMarker = marker.getClass().getDeclaredMethod("deleteMarker");
             deleteMarker.setAccessible(true);
             deleteMarker.invoke(marker);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteCircleMarker(CircleMarker marker2) {
+        try {
+            Method deleteMarker = marker2.getClass().getDeclaredMethod("deleteMarker");
+            deleteMarker.setAccessible(true);
+            deleteMarker.invoke(marker2);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
