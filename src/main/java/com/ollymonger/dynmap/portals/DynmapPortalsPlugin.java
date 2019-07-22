@@ -1,5 +1,6 @@
 package com.ollymonger.dynmap.portals;
 
+import com.google.gson.stream.JsonWriter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -11,8 +12,17 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapCommonAPI;
-import org.dynmap.markers.*;
+import org.dynmap.markers.CircleMarker;
+import org.dynmap.markers.Marker;
+import org.dynmap.markers.MarkerAPI;
+import org.dynmap.markers.MarkerSet;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +56,7 @@ class RegisteredPortal {
 
     }
 
+
     public boolean isPartOfFrame(Location location) {
         return this.frameBlocks.parallelStream()
                 .anyMatch(l -> l.equals(location));
@@ -58,7 +69,12 @@ class RegisteredPortal {
     public Location getCentralPoint() {
         return this.centralPoint;
     }
+
+    public List<Location> getFrameBlocks() {
+        return this.frameBlocks;
+    }
 }
+
 
 public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     static final String DYNMAP_PLUGIN_NAME = "dynmap";
@@ -81,10 +97,11 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
 
         this.initialiseMarkerApi();
+
     }
 
     @EventHandler
-    public void onPortalCreate(PortalCreateEvent event) {
+    public void onPortalCreate(PortalCreateEvent event) throws IOException {
         getLogger().info("Portal created");
         List<BlockState> blocks = event.getBlocks();
 
@@ -134,6 +151,43 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
 
         getLogger().info("Created Nether Portal: " + portalId);
         getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
+
+        this.writePortals();
+    }
+
+    private void writePortals() {
+        try {
+            Path path = Paths.get(getDataFolder().getAbsolutePath(), "portals.json");
+            File file = new File(path.toString());
+            OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
+
+            JsonWriter writer = new JsonWriter(os);
+            writer.setIndent("      ");
+
+            writer.beginArray();
+
+            for (RegisteredPortal portal : this.registeredPortals) {
+                writer.beginObject();
+                writer.name("id").value(portal.getPortalId());
+
+                writer.name("frameBlocks");
+                writer.beginArray();
+                for (Location block : portal.getFrameBlocks()) {
+                    writer.beginObject();
+                    writer.name("x").value(block.getX());
+                    writer.name("y").value(block.getY());
+                    writer.name("z").value(block.getZ());
+                    writer.endObject();
+                }
+                writer.endArray();
+                writer.endObject();
+            }
+
+            writer.endArray();
+            writer.close();
+        } catch (Exception e) {
+            getLogger().info("Exception: " + e.getMessage());
+        }
     }
 
     @EventHandler
