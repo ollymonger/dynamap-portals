@@ -183,6 +183,15 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
                     writer.endObject();
                 }
                 writer.endArray();
+
+                Location centralPoint = portal.getCentralPoint();
+                writer.name("centralPoint");
+                writer.beginObject();
+                writer.name("x").value(centralPoint.getX());
+                writer.name("y").value(centralPoint.getY());
+                writer.name("z").value(centralPoint.getZ());
+                writer.endObject();
+
                 writer.endObject();
             }
 
