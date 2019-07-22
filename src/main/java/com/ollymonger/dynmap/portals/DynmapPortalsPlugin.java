@@ -159,8 +159,9 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         try {
             Path path = Paths.get(getDataFolder().getAbsolutePath(), "portals.json");
             File file = new File(path.toString());
+            file.mkdirs();
             OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
-            new File(String.valueOf(file)).mkdirs();
+
 
             JsonWriter writer = new JsonWriter(os);
             writer.setIndent("      ");
