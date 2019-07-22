@@ -160,6 +160,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
             Path path = Paths.get(getDataFolder().getAbsolutePath(), "portals.json");
             File file = new File(path.toString());
             OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
+            new File(String.valueOf(file)).mkdirs();
 
             JsonWriter writer = new JsonWriter(os);
             writer.setIndent("      ");
@@ -215,6 +216,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
 
             marker.deleteMarker();
             exclusionMarker.deleteMarker();
+            writePortals();
         });
     }
 
