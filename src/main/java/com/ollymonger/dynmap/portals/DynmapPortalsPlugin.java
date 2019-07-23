@@ -54,9 +54,10 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     private MarkerSet portalExclusionSet;
     private ArrayList<RegisteredPortal> registeredPortals = new ArrayList<RegisteredPortal>();
 
+    private Type registeredPortalType = new TypeToken<List<RegisteredPortal>>() {}.getType();
     private Gson gson =
             new GsonBuilder()
-                .registerTypeAdapter(RegisteredPortalSerializer.class, new RegisteredPortalSerializer())
+                .registerTypeAdapter(registeredPortalType, new RegisteredPortalSerializer())
                 .setPrettyPrinting()
                 .create();
 
@@ -127,14 +128,13 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     }
 
     private void writePortals() {
-        Type portalType = new TypeToken<List<RegisteredPortal>>() {}.getType();
         try{
             Path path = Paths.get(getDataFolder().getAbsolutePath(), "portals.json");
             File file = new File(path.toString());
             file.getParentFile().mkdirs();
             OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 
-            os.write(gson.toJson(registeredPortals, portalType));
+            os.write(gson.toJson(this.registeredPortals, registeredPortalType));
 
             os.close();
         } catch (IOException e) {
@@ -167,6 +167,8 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
 
             marker.deleteMarker();
             exclusionMarker.deleteMarker();
+
+            this.registeredPortals.remove(p);
             writePortals();
         });
     }
