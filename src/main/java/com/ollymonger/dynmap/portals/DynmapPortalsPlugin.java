@@ -42,20 +42,23 @@ class RegisteredPortal {
     private List<Location> frameBlocks;
     private Location centralPoint;
 
-    public RegisteredPortal(List<Location> frameBlocks) {
+    public RegisteredPortal(String portalId, Location centralPoint, List<Location> frameBlocks) {
+        this.portalId = portalId;
+        this.centralPoint = centralPoint;
         this.frameBlocks = frameBlocks;
-        this.centralPoint = LocationUtils.getAverageLocation(frameBlocks);
-
-        this.portalId = String.format(
-                "portal_%s_%d_%d_%d",
-                this.centralPoint.getWorld().getName(),
-                Math.round(this.centralPoint.getX()),
-                Math.round(this.centralPoint.getY()),
-                Math.round(this.centralPoint.getZ())
-        );
-
     }
 
+    public static RegisteredPortal create(List<Location> frameBlocks){
+        Location centralPoint = LocationUtils.getAverageLocation(frameBlocks);
+        String portalId = String.format(
+                "portal_%s_%d_%d_%d",
+                centralPoint.getWorld().getName(),
+                Math.round(centralPoint.getX()),
+                Math.round(centralPoint.getY()),
+                Math.round(centralPoint.getZ())
+        );
+        return new RegisteredPortal(portalId, centralPoint, frameBlocks);
+    }
 
     public boolean isPartOfFrame(Location location) {
         return this.frameBlocks.parallelStream()
@@ -66,9 +69,7 @@ class RegisteredPortal {
         return this.portalId;
     }
 
-    public Location getCentralPoint() {
-        return this.centralPoint;
-    }
+    public Location getCentralPoint() { return this.centralPoint; }
 
     public List<Location> getFrameBlocks() {
         return this.frameBlocks;
@@ -110,7 +111,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
                 .map(b -> b.getLocation())
                 .collect(Collectors.toList());
 
-        RegisteredPortal portal = new RegisteredPortal(obsidianLocations);
+        RegisteredPortal portal = RegisteredPortal.create(obsidianLocations);
         this.registeredPortals.add(portal);
 
         String portalId = portal.getPortalId();
@@ -182,6 +183,15 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
                     writer.endObject();
                 }
                 writer.endArray();
+
+                Location centralPoint = portal.getCentralPoint();
+                writer.name("centralPoint");
+                writer.beginObject();
+                writer.name("x").value(centralPoint.getX());
+                writer.name("y").value(centralPoint.getY());
+                writer.name("z").value(centralPoint.getZ());
+                writer.endObject();
+
                 writer.endObject();
             }
 
