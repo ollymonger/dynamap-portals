@@ -1,6 +1,8 @@
 package com.ollymonger.dynmap.portals;
 
-import com.google.gson.stream.JsonWriter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -37,46 +40,6 @@ class LocationUtils {
     }
 }
 
-class RegisteredPortal {
-    private String portalId;
-    private List<Location> frameBlocks;
-    private Location centralPoint;
-
-    public RegisteredPortal(String portalId, Location centralPoint, List<Location> frameBlocks) {
-        this.portalId = portalId;
-        this.centralPoint = centralPoint;
-        this.frameBlocks = frameBlocks;
-    }
-
-    public static RegisteredPortal create(List<Location> frameBlocks){
-        Location centralPoint = LocationUtils.getAverageLocation(frameBlocks);
-        String portalId = String.format(
-                "portal_%s_%d_%d_%d",
-                centralPoint.getWorld().getName(),
-                Math.round(centralPoint.getX()),
-                Math.round(centralPoint.getY()),
-                Math.round(centralPoint.getZ())
-        );
-        return new RegisteredPortal(portalId, centralPoint, frameBlocks);
-    }
-
-    public boolean isPartOfFrame(Location location) {
-        return this.frameBlocks.parallelStream()
-                .anyMatch(l -> l.equals(location));
-    }
-
-    public String getPortalId() {
-        return this.portalId;
-    }
-
-    public Location getCentralPoint() { return this.centralPoint; }
-
-    public List<Location> getFrameBlocks() {
-        return this.frameBlocks;
-    }
-}
-
-
 public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     static final String DYNMAP_PLUGIN_NAME = "dynmap";
 
@@ -91,6 +54,13 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     private MarkerSet portalExclusionSet;
     private ArrayList<RegisteredPortal> registeredPortals = new ArrayList<RegisteredPortal>();
 
+    private Type registeredPortalListType = new TypeToken<List<RegisteredPortal>>() {}.getType();
+    private Gson gson =
+            new GsonBuilder()
+                .registerTypeAdapter(registeredPortalListType, new RegisteredPortalSerializer())
+                .setPrettyPrinting()
+                .create();
+
     @Override
     public void onEnable() {
         getLogger().info("DynmapPortalsPlugin is now enabled");
@@ -98,7 +68,6 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
 
         this.initialiseMarkerApi();
-
     }
 
     @EventHandler
@@ -153,52 +122,21 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         getLogger().info("Created Nether Portal: " + portalId);
         getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
 
-        this.writePortals();
+        writePortals();
     }
 
     private void writePortals() {
-        try {
+        try{
             Path path = Paths.get(getDataFolder().getAbsolutePath(), "portals.json");
             File file = new File(path.toString());
-            file.mkdirs();
+            file.getParentFile().mkdirs();
             OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 
+            os.write(gson.toJson(this.registeredPortals, registeredPortalListType));
 
-            JsonWriter writer = new JsonWriter(os);
-            writer.setIndent("      ");
-
-            writer.beginArray();
-
-            for (RegisteredPortal portal : this.registeredPortals) {
-                writer.beginObject();
-                writer.name("id").value(portal.getPortalId());
-
-                writer.name("frameBlocks");
-                writer.beginArray();
-                for (Location block : portal.getFrameBlocks()) {
-                    writer.beginObject();
-                    writer.name("x").value(block.getX());
-                    writer.name("y").value(block.getY());
-                    writer.name("z").value(block.getZ());
-                    writer.endObject();
-                }
-                writer.endArray();
-
-                Location centralPoint = portal.getCentralPoint();
-                writer.name("centralPoint");
-                writer.beginObject();
-                writer.name("x").value(centralPoint.getX());
-                writer.name("y").value(centralPoint.getY());
-                writer.name("z").value(centralPoint.getZ());
-                writer.endObject();
-
-                writer.endObject();
-            }
-
-            writer.endArray();
-            writer.close();
-        } catch (Exception e) {
-            getLogger().info("Exception: " + e.getMessage());
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -227,6 +165,8 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
 
             marker.deleteMarker();
             exclusionMarker.deleteMarker();
+
+            this.registeredPortals.remove(p);
             writePortals();
         });
     }
