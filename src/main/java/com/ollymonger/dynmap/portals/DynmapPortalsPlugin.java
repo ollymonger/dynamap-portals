@@ -54,10 +54,10 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     private MarkerSet portalExclusionSet;
     private ArrayList<RegisteredPortal> registeredPortals = new ArrayList<RegisteredPortal>();
 
-    private Type registeredPortalType = new TypeToken<List<RegisteredPortal>>() {}.getType();
+    private Type registeredPortalListType = new TypeToken<List<RegisteredPortal>>() {}.getType();
     private Gson gson =
             new GsonBuilder()
-                .registerTypeAdapter(registeredPortalType, new RegisteredPortalSerializer())
+                .registerTypeAdapter(registeredPortalListType, new RegisteredPortalSerializer())
                 .setPrettyPrinting()
                 .create();
 
@@ -68,7 +68,6 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
 
         this.initialiseMarkerApi();
-        
     }
 
     @EventHandler
@@ -124,7 +123,6 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         getLogger().info("Created Nether Portal Exclusion: " + portalExclusion);
 
         writePortals();
-
     }
 
     private void writePortals() {
@@ -134,7 +132,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
             file.getParentFile().mkdirs();
             OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 
-            os.write(gson.toJson(this.registeredPortals, registeredPortalType));
+            os.write(gson.toJson(this.registeredPortals, registeredPortalListType));
 
             os.close();
         } catch (IOException e) {

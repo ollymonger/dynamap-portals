@@ -22,8 +22,8 @@ public class RegisteredPortalSerializer implements JsonSerializer<List<Registere
                 for (Location block : portal.getFrameBlocks()) {
                     JsonObject frameBlock = new JsonObject();
                     frameBlock.addProperty("x", block.getX());
-                    frameBlock.addProperty("Y", block.getY());
-                    frameBlock.addProperty("Z", block.getZ());
+                    frameBlock.addProperty("y", block.getY());
+                    frameBlock.addProperty("z", block.getZ());
                     frameBlockArray.add(frameBlock);
                 }
                 portalObject.add("frameBlocks", frameBlockArray);
