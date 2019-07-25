@@ -26,7 +26,7 @@ public class RegisteredPortalSerializer implements JsonSerializer<List<Registere
                     frameBlock.addProperty("Z", block.getZ());
                     frameBlockArray.add(frameBlock);
                 }
-                portalArray.add(frameBlockArray);
+                portalObject.add("frameBlocks", frameBlockArray);
 
                 JsonObject centralBlock = new JsonObject();
                 Location centralPoint = portal.getCentralPoint();
@@ -34,14 +34,15 @@ public class RegisteredPortalSerializer implements JsonSerializer<List<Registere
                 centralBlock.addProperty("y", centralPoint.getY());
                 centralBlock.addProperty("z", centralPoint.getZ());
 
-                portalArray.add(centralBlock);
+                portalObject.add("centralPoint", centralBlock);
 
+                portalArray.add(portalObject);
             }
 
-
+            return portalArray;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return new JsonArray();
     }
 }
