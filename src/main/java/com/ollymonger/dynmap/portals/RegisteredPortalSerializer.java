@@ -36,6 +36,7 @@ public class RegisteredPortalSerializer implements JsonSerializer<List<Registere
 
                 portalObject.add("centralPoint", centralBlock);
 
+                portalArray.add(portalObject);
             }
 
             return portalArray;
