@@ -19,14 +19,10 @@ import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
-<<<<<<< HEAD
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-=======
-import java.io.*;
->>>>>>> 83fb1b6... Portals save to json though RegisteredPortalSerializer
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -130,11 +126,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     }
 
     private void writePortals() {
-<<<<<<< HEAD
         Type portalType = new TypeToken<List<RegisteredPortal>>() {}.getType();
-=======
-        Type portalType = new TypeToken<RegisteredPortalSerializer>() {}.getType();
->>>>>>> 83fb1b6... Portals save to json though RegisteredPortalSerializer
         try{
             Path path = Paths.get(getDataFolder().getAbsolutePath(), "portals.json");
             File file = new File(path.toString());
