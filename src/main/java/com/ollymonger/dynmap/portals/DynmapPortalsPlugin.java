@@ -67,7 +67,7 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
 
         this.initialiseMarkerApi();
-
+        
     }
 
     @EventHandler
