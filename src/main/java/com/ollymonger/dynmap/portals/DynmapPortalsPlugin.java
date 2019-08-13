@@ -3,6 +3,7 @@ package com.ollymonger.dynmap.portals;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,10 +20,7 @@ import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,19 +52,22 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     private MarkerSet portalExclusionSet;
     private ArrayList<RegisteredPortal> registeredPortals = new ArrayList<RegisteredPortal>();
 
-    private Type registeredPortalListType = new TypeToken<List<RegisteredPortal>>() {}.getType();
+    private Type registeredPortalListType = new TypeToken<List<RegisteredPortal>>() {
+    }.getType();
     private Gson gson =
             new GsonBuilder()
-                .registerTypeAdapter(registeredPortalListType, new RegisteredPortalSerializer())
-                .setPrettyPrinting()
-                .create();
+                    .registerTypeAdapter(registeredPortalListType, new RegisteredPortalSerializer())
+                    .registerTypeAdapter(registeredPortalListType, new RegisteredPortalDeserializer())
+                    .setPrettyPrinting()
+                    .create();
+
 
     @Override
     public void onEnable() {
         getLogger().info("DynmapPortalsPlugin is now enabled");
 
         this.getServer().getPluginManager().registerEvents(this, this);
-
+        loadPortals();
         this.initialiseMarkerApi();
     }
 
@@ -126,15 +127,29 @@ public class DynmapPortalsPlugin extends JavaPlugin implements Listener {
     }
 
     private void writePortals() {
-        try{
+        try {
             Path path = Paths.get(getDataFolder().getAbsolutePath(), "portals.json");
             File file = new File(path.toString());
             file.getParentFile().mkdirs();
             OutputStreamWriter os = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 
             os.write(gson.toJson(this.registeredPortals, registeredPortalListType));
+            getLogger().info("portal done");
 
             os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadPortals() {
+        try {
+            Path path = Paths.get(getDataFolder().getAbsolutePath(), "portals.json");
+            File file = new File(path.toString());
+            JsonReader reader = new JsonReader(new FileReader(file));
+            List<RegisteredPortal> data = gson.fromJson(reader, registeredPortalListType);
+
+            getLogger().info(String.valueOf(data.size()));
         } catch (IOException e) {
             e.printStackTrace();
         }
